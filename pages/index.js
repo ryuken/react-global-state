@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react'
+import React, { useEffect } from "react"
 
 import useSwr from "swr"
 
 import { Grid, Button, List, ListItem, ListItemIcon, Checkbox, TextField, ListItemSecondaryAction, IconButton } from "@material-ui/core"
-import { Delete } from "@material-ui/icons"
+import { Delete, Sync } from "@material-ui/icons"
 
 import { motion, useAnimation } from "framer-motion"
 
@@ -20,7 +20,7 @@ const SomeComponent = () => {
   const controls = useAnimation()
 
   useEffect(() => {
-
+    // set todos from server
     if("undefined" !== typeof data)
       GlobalState.set({ todos: data })
 
@@ -34,6 +34,9 @@ const SomeComponent = () => {
 
   }, [todos.length])
 
+  /**
+   * Add a todo item
+   */
   const addTodo = () => {
 
     let newTodos = [...todos]
@@ -44,6 +47,12 @@ const SomeComponent = () => {
     })
   }
 
+  /**
+   * On change handler to be fired
+   * 
+   * @param {Integer} i index of the todo item
+   * @param {String} value Value from e.target.value
+   */
   const onChange = (i, value) => {
     
     let newTodos = [...todos]
@@ -52,8 +61,14 @@ const SomeComponent = () => {
     GlobalState.set({
       todos: newTodos,
     })
+    // to instantly update it from the server too, we can fire
+    // syncTodos() or implement a single PUT item on server and fire that in an onBlur function
   }
 
+  /**
+   * 
+   * @param {Integer} i index of the todo
+   */
   const toggle = (i) => {
     
     let newTodos = [...todos]
@@ -62,8 +77,15 @@ const SomeComponent = () => {
     GlobalState.set({
       todos: newTodos,
     })
+    // to instantly toggle it in the server too, we can fire
+    // syncTodos() or implement a single PUT item on server and fire that here
   }
 
+  /**
+   * Remove a todo item
+   * 
+   * @param {Integer} i index of the todo
+   */
   const removeTodo = (i) => {
 
     let newTodos = [...todos]
@@ -73,6 +95,22 @@ const SomeComponent = () => {
     GlobalState.set({
       todos: newTodos,
     })
+
+    // to instantly remove it from the server too, we can fire
+    // syncTodos() or implement a single delete item on server and fire that here
+  }
+
+  const syncTodos = () => {
+
+    // sync own data with server data (own data is considered as always the truth)
+    fetch("/api/todos", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ todos })
+    })
+    // we dont have to do anything with the data from the server as we already have the correct data
   }
 
   return (
@@ -83,6 +121,11 @@ const SomeComponent = () => {
         </Grid>
         <Grid item>
           <Button variant="contained" onClick={addTodo}>Add todo</Button>
+        </Grid>
+        <Grid item>
+          <IconButton onClick={syncTodos}>
+            <Sync />
+          </IconButton>
         </Grid>
       </Grid>
       

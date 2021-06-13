@@ -9,6 +9,7 @@ const initialGlobalState = {
 // Create a Context for the (global) State
 const GlobalState = React.createContext();
 
+// i've rewritten the React.Component to hooks...
 const Global = ({ Root  }) => {
 
     const [globals, setGlobals] = useState(initialGlobalState || {})
