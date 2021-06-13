@@ -12,3 +12,8 @@ Optional (backend):
 Optional (frontend):
 - design something nice
 - mobile responsiveness
+
+Instructions:
+- npm install
+- npm run dev
+open browser on port 3000
