@@ -1,21 +1,54 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 
-import { GlobalState, useGlobalState } from "../components/Global"
+import useSwr from "swr"
 
 import { Grid, Button, List, ListItem, ListItemIcon, Checkbox, TextField, ListItemSecondaryAction, IconButton } from "@material-ui/core"
 import { Delete } from "@material-ui/icons"
-import { finished } from 'stream'
+
+import { motion, useAnimation } from "framer-motion"
+
+import { GlobalState, useGlobalState } from "../components/Global"
+
+const fetcher = (url) => fetch(url).then((res) => res.json())
 
 // Create an example component which both renders and modifies the GlobalState
 const SomeComponent = () => {
 
+  const { data, error = "" } = useSwr("/api/todos", fetcher)
+
   const { todos } = useGlobalState()
+  const controls = useAnimation()
+
+  useEffect(() => {
+
+    if("undefined" !== typeof data)
+      GlobalState.set({ todos: data })
+
+  }, [data])
+
+  useEffect(() => {
+    // animate fontSize based on todos length
+    controls.start({
+      fontSize: ["2rem", "3rem", "2rem"]
+    })
+
+  }, [todos.length])
 
   const addTodo = () => {
 
     let newTodos = [...todos]
     newTodos.push({ id: Date.now(), text: "", finished: false })
 
+    GlobalState.set({
+      todos: newTodos,
+    })
+  }
+
+  const onChange = (i, value) => {
+    
+    let newTodos = [...todos]
+    newTodos[i].text = value
+    
     GlobalState.set({
       todos: newTodos,
     })
@@ -46,7 +79,7 @@ const SomeComponent = () => {
     <>
       <Grid container justify="space-around">
         <Grid item>
-          {todos.length} todos
+          <motion.span animate={controls}>{todos.length}</motion.span> todos
         </Grid>
         <Grid item>
           <Button variant="contained" onClick={addTodo}>Add todo</Button>
@@ -65,7 +98,13 @@ const SomeComponent = () => {
                 disableRipple
               />
             </ListItemIcon>
-            <TextField name="text" fullWidth placeholder="What must be done?" />
+            <TextField
+              name="text"
+              fullWidth
+              value={todo.text}
+              onChange={(e) => onChange(i, e.target.value)}
+              placeholder="What must be done?"
+            />
             <ListItemSecondaryAction>
               <IconButton edge="end" aria-label="delete" onClick={removeTodo.bind(null, i)}>
                 <Delete />
